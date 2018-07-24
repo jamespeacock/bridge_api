@@ -3,7 +3,8 @@ var request = require('supertest');
 describe('loading express', function () {
   var server;
   beforeEach(function () {
-    server = require('../app', { bustCache: true });
+    delete require.cache[require.resolve('../app')];
+    server = require('../app');
   });
   afterEach(function (done) {
     server.close(done);

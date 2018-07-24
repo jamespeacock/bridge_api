@@ -11,10 +11,12 @@ app.get('/', (req, res) => res.status(200).send('Welcome to Bridge!'));
 
 app.post('/login', (req, res) => {
 
-	let email = req.params.email;
-	let password = req.params.password; //obv make this more secure later
+	let email = req.body.email;
+	let password = req.body.password; //obv make this more secure later
 
+	console.log(email)
 	var user = db.prepare('SELECT * FROM user WHERE email=?').get(email);
+	console.log(user)
 
 	if (user) {
 
@@ -22,19 +24,30 @@ app.post('/login', (req, res) => {
 			res.status(200).send(user.user_id);
 		}
 		else {
-			res.status(500).('Invalid Password')
+			res.status(501).send('Invalid Password')
 		}
 	} else {
-		res.status(500).send('Invalid Username')
+		res.status(502).send('Invalid Username')
 	}
 
 });
 
 app.post('/signup', (req, res) => 
 	{
+		let name = req.body.name;
+		let email = req.body.email;
+		let password = req.body.password; //obv make this more secure later
 
-		db.prepare('INSERT INTO user (name,email,password) VALUES (' + name + ',\'' + email +'\',' + password + ');').put()
-		res.send('signed up as ' + str(user_id))
+		console.log(name);
+
+		//TODO check if user already exists.
+
+		var info = db.prepare('INSERT INTO user (name,email,password) VALUES (\'' + name + '\',\'' + email +'\',\'' + password + '\');').run();
+
+		console.log('Signed up as ' + info.lastInsertROWID.toString());
+		res.status(200).send('Signed up as ' + info.lastInsertROWID.toString());
+
+
 
 	});
 
