@@ -32,7 +32,7 @@ app.post('/login', (req, res) => {
 
 });
 
-app.post('/signup', (req, res) => 
+app.post('/signup', (req, res) =>
 	{
 		let name = req.body.name;
 		let email = req.body.email;
@@ -42,13 +42,25 @@ app.post('/signup', (req, res) =>
 
 		//TODO check if user already exists.
 
-		var info = db.prepare('INSERT INTO user (name,email,password) VALUES (\'' + name + '\',\'' + email +'\',\'' + password + '\');').run();
+		//NOTE: Modified code ############################################################################################
+		//NOTE: This might address the TODO above, checks to see if a user email already exists in the DB
+		var info = db.prepare('IF NOT EXISTS ( SELECT 1 FROM user WHERE email = ' + connection.escape(email) +
+		' BEGIN INSERT INTO user (name,email,password) VALUES (\'' + name + '\',\'' + email +'\',\'' + password + '\') END;').run();
 
-		console.log('Signed up as ' + info.lastInsertROWID.toString());
-		res.status(200).send('Signed up as ' + info.lastInsertROWID.toString());
+		if (info) {
+			console.log('Signed up as ' + info.lastInsertROWID.toString());
+			res.status(200).send('Signed up as ' + info.lastInsertROWID.toString());
+		}
+		else {
+			res.status(500).send('User already exists in the database')
+		}
 
+		//NOTE: ############################################################################################
 
-
+		//NOTE: Original code here
+		// var info = db.prepare('INSERT INTO user (name,email,password) VALUES (\'' + name + '\',\'' + email +'\',\'' + password + '\');').run();
+		// console.log('Signed up as ' + info.lastInsertROWID.toString());
+		// res.status(200).send('Signed up as ' + info.lastInsertROWID.toString());
 	});
 
 app.get('/search', (req, res) => {
@@ -60,7 +72,7 @@ app.get('/profile/:id', (req, res) => {
 	let user_id = req.params.id;
 	var user = db.prepare('SELECT * FROM user WHERE id=?').get(user_id);
 	var tags = db.prepare('SELECT * FROM tags WHERE user_id=?').all(user_id);
-	
+
 	for (var i = 0; i < tags.length; i++) {
 		user[tags[i].tag_type] = tags[i].tag_content;
 	}
