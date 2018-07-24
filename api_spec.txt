@@ -1,0 +1,132 @@
+# API Specifications
+
+TODO: Authorization!
+TODO: Formalize status codes. 
+
+----------
+Reference:
+
+A "USER_PROFILE" is an object with the following properties:
+{
+	id: number,
+	name: string,
+	email: string,
+	picture: string,
+	city: string,
+	role: string,
+	college: string,
+	finger_str: string,
+	finger_dir: string,
+	finger_pet: string,
+	finger_com: string,
+	finger_weird: string
+}
+	
+
+-----------
+POST /login
+
+	# Description:
+	Route for logging into the Bridge App. 
+
+	# Body: 
+	{
+	  email: string,
+	  password: string
+	}
+
+	# Response: 
+	{ 
+	  status: number,
+	  message: string
+	}
+
+------------
+POST /signup
+
+	# Description:
+	Route for signing up Bridge App.
+
+	# Body: 
+	{
+	  email: string,
+	  password: string,
+	  ref_code: string,
+	}
+	
+	# Response: 
+	{
+	  status: number,
+	  message: string
+	}
+	
+-----------
+GET /search?query=
+
+	# Description:
+	Search through the Fellows database.
+	Takes the search query as a url query.
+	Returns an array of USER_PROFILES.
+
+	# Body: N/A
+
+	# Response:
+	{ 
+	  status: number,
+	  message: string,
+	  data: [USER_PROFILE]
+	}
+
+---------
+GET /fotd
+
+	# Description:
+	Route for getting a random fellow.
+	TODO: Actually get the same fellow each day. 
+
+	# Body: N/A
+
+	# Response: 
+	{
+	  status: number,
+	  message: string,
+	  USER_PROFILE
+	}
+
+----------------
+GET /profile/:id
+
+	# Description:
+	Route for getting a fellow's profile.
+	Takes a user_id as a url parameter.
+
+	# Body: N/A
+
+	# Response: 
+	{
+	  status: number,
+	  message: string,
+	  USER_PROFILE
+	}
+
+----------
+POST /edit
+
+	# Description:
+	Route for editting your fellow.
+	Body should be a complete user profile, intended to replace the existing one.
+	Returns the most recent version of this fellows profile from the DB.
+
+	# Body: 
+	{
+	  USER_PROFILE
+	}
+
+	# Response: 
+	{ 
+	  status: number,
+	  message: string
+	}
+
+
+
