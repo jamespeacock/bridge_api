@@ -12,59 +12,49 @@ app.get('/', (req, res) => res.status(200).send('Welcome to Bridge!'));
 app.post('/login', (req, res) => {
 
 	let email = req.body.email;
-	let password = req.body.password; //obv make this more secure later
+	let password = req.body.password;
 
-	console.log(email)
-	var user = db.prepare('SELECT * FROM user WHERE email=?').get(email);
-	console.log(user)
+	console.log(`attempted login with ${email}`);
+	
+	let user = db.prepare('SELECT * FROM user WHERE email=?').get(email);
 
-	if (user) {
+	//TODO: obv make this more secure later
+	let pw_match = (user.password === password);
 
-		if (user.password == password) {
-			res.status(200).send(user.user_id);
-		}
-		else {
-			res.status(501).send('Invalid Password')
-		}
+	if (user && pw_match) {
+		res.status(200).send(user.user_id);
+	} else if (user && !pw_match) {
+		res.status(501).send('Invalid Password');
 	} else {
-		res.status(502).send('Invalid Username')
+		res.status(502).send('Invalid Email');
 	}
-
 });
 
-app.post('/signup', (req, res) =>
-	{
-		let name = req.body.name;
-		let email = req.body.email;
-		let password = req.body.password; //obv make this more secure later
+app.post('/signup', (req, res) => {
+	let name = req.body.name;
+	let email = req.body.email;
+	let password = req.body.password;
+	let ref_code = req.body.ref_code;
 
-		console.log(name);
+	let user_exists = db.prepare('SELECT EXISTS(SELECT 1 FROM user WHERE email = ?) AS "check"').get(email);
 
-		//TODO check if user already exists.
+	if (user_exists.check === 1) res.status(200).send("user already exists!");	
 
-		//NOTE: Modified code ############################################################################################
-		//NOTE: This might address the TODO above, checks to see if a user email already exists in the DB
-		var info = db.prepare('IF NOT EXISTS ( SELECT 1 FROM user WHERE email = ' + connection.escape(email) +
-		' BEGIN INSERT INTO user (name,email,password) VALUES (\'' + name + '\',\'' + email +'\',\'' + password + '\') END;').run();
+	let user_insert = db.prepare('INSERT INTO user (name, email, password) VALUES (?, ?, ?);').run(name, email, password);
+	
+	let new_user_id = user_insert.lastInsertROWID;
 
-		if (info) {
-			console.log('Signed up as ' + info.lastInsertROWID.toString());
-			res.status(200).send('Signed up as ' + info.lastInsertROWID.toString());
-		}
-		else {
-			res.status(500).send('User already exists in the database')
-		}
-
-		//NOTE: ############################################################################################
-
-		//NOTE: Original code here
-		// var info = db.prepare('INSERT INTO user (name,email,password) VALUES (\'' + name + '\',\'' + email +'\',\'' + password + '\');').run();
-		// console.log('Signed up as ' + info.lastInsertROWID.toString());
-		// res.status(200).send('Signed up as ' + info.lastInsertROWID.toString());
-	});
+	res.status(200).send(`new user ${new_user_id} added!`);	
+});
 
 app.get('/search', (req, res) => {
-	let query = req.body.query;
+	let query = req.query.query;
+	query = "%" + query + "%";
+	
+	let search_query = db.prepare('SELECT name, email FROM user JOIN tags ON user.id = tags.user_id WHERE tags.tag_content LIKE ? OR user.name LIKE ? OR user.email LIKE ?').get(query, query, query);
+
+	console.log(search_query);
+
 	res.send('search');
 });
 
@@ -77,7 +67,7 @@ app.get('/profile/:id', (req, res) => {
 		user[tags[i].tag_type] = tags[i].tag_content;
 	}
 
-	console.log(user);
+	console.log(`Got user ${user.email}`);
 	res.json(user);
 });
 
