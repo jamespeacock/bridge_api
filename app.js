@@ -15,7 +15,7 @@ app.post('/login', (req, res) => {
 	let password = req.body.password;
 
 	console.log(`attempted login with ${email}`);
-	
+
 	let user = db.prepare('SELECT * FROM user WHERE email=?').get(email);
 
 	//TODO: obv make this more secure later
@@ -38,19 +38,19 @@ app.post('/signup', (req, res) => {
 
 	let user_exists = db.prepare('SELECT EXISTS(SELECT 1 FROM user WHERE email = ?) AS "check"').get(email);
 
-	if (user_exists.check === 1) res.status(200).send("user already exists!");	
+	if (user_exists.check === 1) res.status(503).send("user already exists!");	
 
 	let user_insert = db.prepare('INSERT INTO user (name, email, password) VALUES (?, ?, ?);').run(name, email, password);
-	
+
 	let new_user_id = user_insert.lastInsertROWID;
 
-	res.status(200).send(`new user ${new_user_id} added!`);	
+	res.status(200).send(`new user ${new_user_id} added!`);
 });
 
 app.get('/search', (req, res) => {
 	let query = req.query.query;
 	query = "%" + query + "%";
-	
+
 	let search_query = db.prepare('SELECT name, email FROM user JOIN tags ON user.id = tags.user_id WHERE tags.tag_content LIKE ? OR user.name LIKE ? OR user.email LIKE ?').get(query, query, query);
 
 	console.log(search_query);
