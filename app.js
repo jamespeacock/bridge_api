@@ -38,13 +38,16 @@ app.post('/signup', (req, res) => {
 
 	let user_exists = db.prepare('SELECT EXISTS(SELECT 1 FROM user WHERE email = ?) AS "check"').get(email);
 
-	if (user_exists.check === 1) res.status(503).send("user already exists!");	
+	if (user_exists.check === 1) res.status(503).send("user already exists!");
 
-	let user_insert = db.prepare('INSERT INTO user (name, email, password) VALUES (?, ?, ?);').run(name, email, password);
+	else {
 
-	let new_user_id = user_insert.lastInsertROWID;
+		let user_insert = db.prepare('INSERT INTO user (name, email, password) VALUES (?, ?, ?);').run(name, email, password);
 
-	res.status(200).send(`new user ${new_user_id} added!`);
+		let new_user_id = user_insert.lastInsertROWID;
+
+		res.status(200).send(`new user ${new_user_id} added!`);
+	}
 });
 
 app.get('/search', (req, res) => {
